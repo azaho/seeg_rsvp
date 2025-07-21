@@ -1,0 +1,9 @@
+.venv
+
+image_datasets/
+
+trial_data/
+
+templates/
+
+**/__pycache__/

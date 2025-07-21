@@ -1,0 +1,6 @@
+random
+opencv-python
+numpy
+pygame
+nltk
+pandas
