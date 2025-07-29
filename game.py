@@ -108,6 +108,10 @@ paused = True
 started = False
 current_image_i = 0
 
+click_times = []
+stimulus_times = np.zeros(len(TEMPLATE["framedata"]))
+target_stimulus_idx = [i for i, framedata in enumerate(TEMPLATE["framedata"]) if framedata["target"]]
+
 time_start_showing_gray_frame = None
 def show_stimulus(image_i):
     global time_start_showing_gray_frame
@@ -115,10 +119,19 @@ def show_stimulus(image_i):
     time_start_showing_stimulus = time.time()
     blit_image(image_i)
     create_event("show_stimulus", image_i=image_i)
+    stimulus_times[image_i] = time.time()
+
     pygame.time.delay(TEMPLATE["settings"]["TIME_ON"] - int((time.time() - time_start_showing_stimulus) * 1000))
 
     time_start_showing_gray_frame = time.time()
     blit_gray_frame(square=False)
+
+def get_last_target_stimulus_idx(current_image_i):
+    # Find the last target stimulus index that is <= current_image_i
+    for idx in reversed(target_stimulus_idx):
+        if idx <= current_image_i:
+            return idx
+    return None
 
 running = True
 last_backup = time.time()
@@ -137,6 +150,23 @@ while running:
             print(f"Mouse clicked at position: {pygame.mouse.get_pos()}")
             create_event("mouse_click")
 
+            success_sound = False
+            current_time = time.time()
+            last_target_stimulus_idx = get_last_target_stimulus_idx(current_image_i)
+            if (last_target_stimulus_idx is not None) and \
+                (current_time - stimulus_times[last_target_stimulus_idx] < 2) and \
+                (len(click_times) == 0 or (stimulus_times[last_target_stimulus_idx] > click_times[-1])): # XXX: todo hardcoded, make it a config
+                # XXX todo: make it select the stimulus which was cliekd and then check if a new dog appeared after that, not after last click.
+                # todo: make better sounds (they should be shorter and start immediately)
+                success_sound = True
+
+            if success_sound:
+                pygame.mixer.Sound("sound_success.mp3").play()
+            else:
+                pygame.mixer.Sound("sound_failure.mp3").play()
+
+            click_times.append(current_time)
+
     if running and started and not paused:
         show_stimulus(current_image_i)
         current_image_i += 1
@@ -149,5 +179,9 @@ while running:
     if current_time - last_backup >= BACKUP_CONFIG_INTERVAL:
         save_events()
         last_backup = current_time
+    
+    if current_image_i == len(TEMPLATE["framedata"]):
+        running = False
+        save_events()
 
 pygame.quit()
