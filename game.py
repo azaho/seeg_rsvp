@@ -103,28 +103,22 @@ def blit_gray_frame(square=False):
     screen.blit(gray_frame if not square else gray_frame_square, (0, 0))
     pygame.display.flip()
 
-clock = pygame.time.Clock()
-paused = True
-started = False
+stream_running = False
+game_running = True
 current_image_i = 0
 
-click_times = []
-stimulus_times = np.zeros(len(TEMPLATE["framedata"]))
+CLICK_TIMES = []
+STIMULUS_ONSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
+STIMULUS_OFFSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
+STIMULUS_ONSET_TIMES_ACTUAL = np.zeros(len(TEMPLATE["framedata"]))
+STIMULUS_OFFSET_TIMES_ACTUAL = np.zeros(len(TEMPLATE["framedata"]))
 target_stimulus_idx = [i for i, framedata in enumerate(TEMPLATE["framedata"]) if framedata["target"]]
 
-time_start_showing_gray_frame = None
 def show_stimulus(image_i):
-    global time_start_showing_gray_frame
-
-    time_start_showing_stimulus = time.time()
     blit_image(image_i)
     create_event("show_stimulus", image_i=image_i)
-    stimulus_times[image_i] = time.time()
+    STIMULUS_ONSET_TIMES_ACTUAL[image_i] = time.time()
 
-    pygame.time.delay(TEMPLATE["settings"]["TIME_ON"] - int((time.time() - time_start_showing_stimulus) * 1000))
-
-    time_start_showing_gray_frame = time.time()
-    blit_gray_frame(square=False)
 
 def get_last_target_stimulus_idx(current_image_i):
     # Find the last target stimulus index that is <= current_image_i
@@ -133,55 +127,97 @@ def get_last_target_stimulus_idx(current_image_i):
             return idx
     return None
 
-running = True
-last_backup = time.time()
+def start_stream():
+    global stream_running, current_image_i
+    assert not stream_running, "Stream is already running"
 
-while running:
+    start_i = current_image_i
+    
+    start_time = time.time()
+    stream_running = True
+    for counter_i, image_i in enumerate(range(start_i, len(TEMPLATE["framedata"]))):
+        STIMULUS_ONSET_TIMES_PREDETERMINED[image_i] = start_time + counter_i * (TEMPLATE["settings"]["TIME_ON"] + TEMPLATE["settings"]["TIME_OFF"]) / 1000
+        STIMULUS_OFFSET_TIMES_PREDETERMINED[image_i] = start_time + counter_i * (TEMPLATE["settings"]["TIME_ON"] + TEMPLATE["settings"]["TIME_OFF"]) / 1000 + TEMPLATE["settings"]["TIME_ON"] / 1000
+    create_event("stream_start", start_i=start_i)
+
+def process_click():
+    global current_image_i, target_stimulus_idx, targets_caught
+
+    print(f"Mouse clicked at position: {pygame.mouse.get_pos()}")
+    create_event("mouse_click")
+
+    success_sound = False
+    current_time = time.time()
+
+    for t_idx in target_stimulus_idx:
+        if t_idx > current_image_i:
+            break
+        if current_time - STIMULUS_ONSET_TIMES_ACTUAL[t_idx] > 2: # TODO: hardcoded 2 seconds
+            continue
+        if t_idx in targets_caught:
+            continue
+        targets_caught.add(t_idx)
+        success_sound = True
+        break
+
+    if success_sound:
+        pygame.mixer.Sound("sound_success.mp3").play()
+    else:
+        pygame.mixer.Sound("sound_failure.mp3").play()
+
+    CLICK_TIMES.append(current_time)
+
+def pause():
+    global stream_running
+    assert stream_running, "Game is already paused"
+    stream_running = False
+    create_event("pause")
+
+last_backup = time.time()
+stimulus_onset_processed = set()
+stimulus_offset_processed = set()
+targets_caught = set()
+
+while game_running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            game_running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
-                started = True
-                paused = False
+                start_stream()
             elif event.key == pygame.K_p:
-                paused = not paused
+                if stream_running:
+                    pause()
+                else:
+                    start_stream()
+            elif event.key == pygame.K_SPACE:
+                process_click()
+            elif event.key == pygame.K_t:
+                create_event("trigger")
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            print(f"Mouse clicked at position: {pygame.mouse.get_pos()}")
-            create_event("mouse_click")
+            process_click()
 
-            success_sound = False
-            current_time = time.time()
-            last_target_stimulus_idx = get_last_target_stimulus_idx(current_image_i)
-            if (last_target_stimulus_idx is not None) and \
-                (current_time - stimulus_times[last_target_stimulus_idx] < 2) and \
-                (len(click_times) == 0 or (stimulus_times[last_target_stimulus_idx] > click_times[-1])): # XXX: todo hardcoded, make it a config
-                # XXX todo: make it select the stimulus which was cliekd and then check if a new dog appeared after that, not after last click.
-                # todo: make better sounds (they should be shorter and start immediately)
-                success_sound = True
-
-            if success_sound:
-                pygame.mixer.Sound("sound_success.mp3").play()
-            else:
-                pygame.mixer.Sound("sound_failure.mp3").play()
-
-            click_times.append(current_time)
-
-    if running and started and not paused:
-        show_stimulus(current_image_i)
-        current_image_i += 1
-
-        pygame.time.delay(TEMPLATE["settings"]["TIME_OFF"] - int((time.time() - time_start_showing_gray_frame) * 1000))
-    else: 
-        clock.tick(GAME_FPS)
-    
     current_time = time.time()
+
+    if stream_running:
+        if current_image_i not in stimulus_onset_processed and current_time >= STIMULUS_ONSET_TIMES_PREDETERMINED[current_image_i]:
+            show_stimulus(current_image_i)
+            stimulus_onset_processed.add(current_image_i)
+        if current_image_i not in stimulus_offset_processed and current_time >= STIMULUS_OFFSET_TIMES_PREDETERMINED[current_image_i]:
+            blit_gray_frame(square=False)
+            stimulus_offset_processed.add(current_image_i)
+            current_image_i += 1
+
+        if current_image_i >= len(TEMPLATE["framedata"]):
+            stream_running = False
+            create_event("stream_end")
+    
     if current_time - last_backup >= BACKUP_CONFIG_INTERVAL:
         save_events()
         last_backup = current_time
     
     if current_image_i == len(TEMPLATE["framedata"]):
-        running = False
+        running  = False
         save_events()
 
 pygame.quit()

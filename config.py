@@ -8,7 +8,7 @@ SCREEN_HEIGHT = 1080
 
 ### VISUAL STIMULUS SETTINGS
 
-VISUAL_STIMULUS_SIZE = 1/2 # proportion of the screen height
+VISUAL_STIMULUS_SIZE = 0.75 # proportion of the screen height
 
 VISUAL_CROSS_SIZE = 1/64  # proportion of the stimulus size
 VISUAL_CROSS_THICKNESS = 1/720
