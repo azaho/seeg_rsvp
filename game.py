@@ -108,6 +108,8 @@ game_running = True
 current_image_i = 0
 
 CLICK_TIMES = []
+SUCCESS_CLICKS = []
+FAILURE_CLICKS = []
 STIMULUS_ONSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
 STIMULUS_OFFSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
 STIMULUS_ONSET_TIMES_ACTUAL = np.zeros(len(TEMPLATE["framedata"]))
@@ -162,16 +164,32 @@ def process_click():
 
     if success_sound:
         pygame.mixer.Sound("sound_success.mp3").play()
+        SUCCESS_CLICKS.append(current_time)
     else:
         pygame.mixer.Sound("sound_failure.mp3").play()
-
+        FAILURE_CLICKS.append(current_time)
     CLICK_TIMES.append(current_time)
 
 def pause():
     global stream_running
     assert stream_running, "Game is already paused"
     stream_running = False
+    blit_gray_frame(square=False)
     create_event("pause")
+
+def save_data():
+    log_arrays = {
+        "CLICK_TIMES": CLICK_TIMES,
+        "SUCCESS_CLICKS": SUCCESS_CLICKS,
+        "FAILURE_CLICKS": FAILURE_CLICKS,
+        "STIMULUS_ONSET_TIMES_PREDETERMINED": STIMULUS_ONSET_TIMES_PREDETERMINED,
+        "STIMULUS_OFFSET_TIMES_PREDETERMINED": STIMULUS_OFFSET_TIMES_PREDETERMINED,
+        "STIMULUS_ONSET_TIMES_ACTUAL": STIMULUS_ONSET_TIMES_ACTUAL,
+        "STIMULUS_OFFSET_TIMES_ACTUAL": STIMULUS_OFFSET_TIMES_ACTUAL,
+        "TARGET_STIMULUS_IDX": target_stimulus_idx,
+    }
+    log_arrays = {k: np.array(v) for k, v in log_arrays.items()}
+    np.savez(os.path.join(SAVE_DIR, "log_arrays.npz"), **log_arrays)
 
 last_backup = time.time()
 stimulus_onset_processed = set()
@@ -203,6 +221,7 @@ while game_running:
         if current_image_i not in stimulus_onset_processed and current_time >= STIMULUS_ONSET_TIMES_PREDETERMINED[current_image_i]:
             show_stimulus(current_image_i)
             stimulus_onset_processed.add(current_image_i)
+
         if current_image_i not in stimulus_offset_processed and current_time >= STIMULUS_OFFSET_TIMES_PREDETERMINED[current_image_i]:
             blit_gray_frame(square=False)
             stimulus_offset_processed.add(current_image_i)
@@ -215,9 +234,7 @@ while game_running:
     if current_time - last_backup >= BACKUP_CONFIG_INTERVAL:
         save_events()
         last_backup = current_time
-    
-    if current_image_i == len(TEMPLATE["framedata"]):
-        running  = False
-        save_events()
 
+save_events()
+save_data()
 pygame.quit()

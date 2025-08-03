@@ -59,7 +59,7 @@ def resize_shorter_to(img: np.ndarray, target: int) -> np.ndarray:
         new_h, new_w = target, int(w * target / h)
     else:
         new_w, new_h = target, int(h * target / w)
-    return cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    return cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
 
 def crop_image(img: np.ndarray, crop_dict: dict) -> np.ndarray:
     """Crop image according to specified dimensions."""

@@ -10,11 +10,14 @@ import math
 
 ### SETTING UP THE GENERAL PARAMETERS ###
 
-N_FRAMES = 300 # unique frames
+N_FRAMES = 1200 # unique frames
 N_REPEATS = 2 # number of times to repeat each frame
 
 TIME_ON = 100 # ms
-TIME_OFF = 200 # ms
+TIME_OFF = 150 # ms
+
+# TIME_ON = 100 # ms
+# TIME_OFF = 150 # ms
 
 MIN_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 2 * 1000/(TIME_ON+TIME_OFF)) # minimum 2 seconds between target frames
 MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 30 * 1000/(TIME_ON+TIME_OFF)) # maximum 20 seconds between target frames. NOTE: this constraint is not enforced strictly, but is roughly guiding the number of target frames
@@ -28,10 +31,12 @@ TEMPLATE_NAME = f"{TEMPLATE_PREFIX}_n{N_FRAMES}_on{TIME_ON}_off{TIME_OFF}_s{RAND
 
 def pick_dataset():
     r = random.random()
-    if r < 0.5: # 50% chance to pick ILSVRC2012_img_val
+    if r < 0.4: # 50% chance to pick ILSVRC2012_img_val
         return "ILSVRC2012_img_val"
-    else:
+    elif r < 0.8:
         return "OASIS"
+    else:
+        return "FER"
 
 FILENAMES = {} # structure: {dataset: {target: [image_filenames], non_target: [image_filenames]}}
 FRAMEDATA = [] # structure: {frame_i: {}} -- history of picked images
@@ -39,8 +44,6 @@ FRAMEDATA = [] # structure: {frame_i: {}} -- history of picked images
 ALREADY_PICKED_IMAGE_FILENAMES = set()
 def pick_image(dataset: str, target=False):
     assert dataset in FILENAMES, f"Dataset {dataset} not found in FILENAMES"
-    assert len(FILENAMES[dataset]["target"]) > 0, f"No target images found for dataset {dataset}"
-    assert len(FILENAMES[dataset]["non_target"]) > 0, f"No non-target images found for dataset {dataset}"
 
     image_bank = FILENAMES[dataset]["target" if target else "non_target"]
     image_bank = [filename for filename in image_bank if filename not in ALREADY_PICKED_IMAGE_FILENAMES]
@@ -179,6 +182,22 @@ FILENAMES["OASIS"] = {
 
 print(f"OASIS: Found {len(OASIS_TARGET_IMAGE_FILENAMES)} target images and {len(OASIS_NONTARGET_IMAGE_FILENAMES)} non-target images")
 
+### FACE CLASS PREPROCESSING ###
+
+FER_emotions = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
+FER_emotion_filenames = {emotion: [] for emotion in FER_emotions}
+for emotion in FER_emotions:
+    for filename in os.listdir(f"image_datasets/FER/FER/validation/{emotion}"):
+        FER_emotion_filenames[emotion].append("validation/" + emotion + "/" + filename)
+
+FILENAMES["FER"] = {
+    "non_target": [filename for filenames in FER_emotion_filenames.values() for filename in filenames],
+    "target": []
+}
+
+print(f"FER: Found {len(FER_emotion_filenames['angry'])} angry images, {len(FER_emotion_filenames['disgust'])} disgust images, {len(FER_emotion_filenames['fear'])} fear images, {len(FER_emotion_filenames['happy'])} happy images, {len(FER_emotion_filenames['sad'])} sad images, {len(FER_emotion_filenames['surprise'])} surprise images, {len(FER_emotion_filenames['neutral'])} neutral images")
+print(f"\t Total target images: {len(FILENAMES['FER']['target'])}; Total non-target images: {len(FILENAMES['FER']['non_target'])}")
+
 ### PICKING THE IMAGE ###
 
 print("\nGenerating the frames...") 
@@ -191,6 +210,7 @@ def add_frame(target=False):
     while image_filename is None: # try to pick an image until it succeeds (can only fail if all images from the dataset have been picked)
         dataset = pick_dataset()
         image_filename = pick_image(dataset, target=target)
+        # print(f"Picked image {image_filename} from dataset {dataset}")
     image_path = f"image_datasets/{dataset}/{dataset}/{image_filename}"
 
     img = cv2.imread(image_path)
