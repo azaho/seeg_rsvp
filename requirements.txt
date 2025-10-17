@@ -1,4 +1,3 @@
-random
 opencv-python
 numpy
 pygame
