@@ -16,13 +16,15 @@ N_REPEATS = 2 # number of times to repeat each frame
 TIME_ON = 100 # ms
 TIME_OFF = 150 # ms
 
-# TIME_ON = 100 # ms
-# TIME_OFF = 150 # ms
+# Uncomment for the "test warmup" template
+# N_FRAMES = 50 # unique frames
+# TIME_ON = 200 # ms
+# TIME_OFF = 300 # ms
 
 MIN_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 2 * 1000/(TIME_ON+TIME_OFF)) # minimum 2 seconds between target frames
 MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 30 * 1000/(TIME_ON+TIME_OFF)) # maximum 20 seconds between target frames. NOTE: this constraint is not enforced strictly, but is roughly guiding the number of target frames
 
-RANDOM_SEED_STRING = "4" # for reproducibility
+RANDOM_SEED_STRING = "1" # for reproducibility
 TEMPLATE_PREFIX = "first"
 
 TEMPLATE_NAME = f"{TEMPLATE_PREFIX}_n{N_FRAMES}_on{TIME_ON}_off{TIME_OFF}_s{RANDOM_SEED_STRING}"
@@ -205,13 +207,19 @@ min_n_targets_frames = N_FRAMES // MAX_DISTANCE_BETWEEN_TARGET_FRAMES # minimum 
 max_n_targets_frames = N_FRAMES // MIN_DISTANCE_BETWEEN_TARGET_FRAMES # maximum number of target frames
 n_target_frames = random.randint(min_n_targets_frames, max_n_targets_frames)
 
-def add_frame(target=False):
+def add_frame(target=False, copy_image=True):
     image_filename = None
     while image_filename is None: # try to pick an image until it succeeds (can only fail if all images from the dataset have been picked)
         dataset = pick_dataset()
         image_filename = pick_image(dataset, target=target)
         # print(f"Picked image {image_filename} from dataset {dataset}")
     image_path = f"image_datasets/{dataset}/{dataset}/{image_filename}"
+
+    if copy_image:
+        new_image_path = os.path.join(SAVE_DIR, image_path)
+        os.makedirs(os.path.dirname(new_image_path), exist_ok=True)
+        shutil.copy2(image_path, new_image_path)
+        image_path = new_image_path
 
     img = cv2.imread(image_path)
     top, left, size, size = screen_setup.generate_random_crop(img)

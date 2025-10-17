@@ -4,6 +4,6 @@ image_datasets/
 
 trial_data/
 
-templates/
+templates*/
 
 **/__pycache__/
