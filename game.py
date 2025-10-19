@@ -212,6 +212,8 @@ while game_running:
                 process_click()
             elif event.key == pygame.K_t:
                 create_event("trigger")
+            elif event.key == pygame.K_q:
+                game_running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             process_click()
 
