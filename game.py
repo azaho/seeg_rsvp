@@ -84,8 +84,6 @@ for frame_i, framedata in enumerate(TEMPLATE["framedata"]):
 screen.blit(gray_frame, (0, 0))
 pygame.display.flip()
 
-### GAME LOOP ###
-
 def blit_image(image_i, square=True):
     x_offset = (SCREEN_WIDTH - VISUAL_STIMULUS_WIDTH) // 2
     y_offset = (SCREEN_HEIGHT - VISUAL_STIMULUS_HEIGHT) // 2
@@ -102,6 +100,60 @@ def blit_image(image_i, square=True):
 def blit_gray_frame(square=False):
     screen.blit(gray_frame if not square else gray_frame_square, (0, 0))
     pygame.display.flip()
+
+### INSTRUCTION SCREEN ###
+
+def show_instruction_screen():
+    """Display instruction screen with gray square + cross and instructions text"""
+    screen.blit(gray_frame_square, (0, 0))
+    
+    # Create font for instructions
+    font = pygame.font.Font(None, 48)  # Default font, size 48
+    
+    # Instruction text
+    instructions = [
+        "A stream of images will keep rapidly flowing as you look at the cross",
+        "in the middle of the screen. Whenever you see a dog in the image,",
+        "press MOUSE CLICK. A session lasts up to 8 minutes.",
+        "",
+        "Click mouse or press any key to start."
+    ]
+    
+    # Render and display text
+    y_offset = SCREEN_HEIGHT // 6  # Start at 1/6 from top
+    for line in instructions:
+        # Render shadow text first
+        shadow_surface = font.render(line, True, (0, 0, 0))  # Black text
+        shadow_rect = shadow_surface.get_rect(center=(SCREEN_WIDTH // 2 + 2, y_offset + 2))
+        screen.blit(shadow_surface, shadow_rect)
+        
+        # Render main text on top
+        text_surface = font.render(line, True, (255, 255, 255))  # White text
+        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+        screen.blit(text_surface, text_rect)
+        y_offset += 60  # Space between lines
+    pygame.display.flip()
+    
+    # Wait for mouse click or key press
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False  # Signal to quit
+            elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+                waiting = False
+    
+    # Show gray frame without square after instruction screen
+    blit_gray_frame(square=False)
+    create_event("instructions_completed")
+    return True  # Signal to continue
+
+# Show instruction screen
+if not show_instruction_screen():
+    pygame.quit()
+    sys.exit()
+
+### GAME LOOP ###
 
 stream_running = False
 game_running = True
@@ -202,7 +254,8 @@ while game_running:
             game_running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
-                start_stream()
+                if not stream_running:
+                    start_stream()
             elif event.key == pygame.K_p:
                 if stream_running:
                     pause()
