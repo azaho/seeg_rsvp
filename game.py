@@ -295,6 +295,10 @@ while game_running:
         save_events()
         last_backup = current_time
 
+        # log progress
+        session_progress = (current_image_i / len(TEMPLATE["framedata"])) * 100
+        print(f"Session progress: {session_progress:.1f}%")
+
 save_events()
 save_data()
 pygame.quit()
