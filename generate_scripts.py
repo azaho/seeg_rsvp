@@ -39,7 +39,7 @@ def generate_scripts():
         script_content = f"""#!/bin/bash
 # Auto-generated script to run {template_name}
 
-cd seeg_rsvp/
+cd "$(dirname "$0")/seeg_rsvp/"
 source .venv/bin/activate
 python game.py {template_name}
 """
