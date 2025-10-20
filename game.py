@@ -53,6 +53,11 @@ pygame.init()
 
 desktop_sizes = pygame.display.get_desktop_sizes()
 if SCREEN_ID < 0: SCREEN_ID = len(desktop_sizes) - 1
+print("\nFound displays:")
+for i, (width, height) in enumerate(desktop_sizes):
+    print(f"Display {i}: {width}x{height}")
+print(f"Using display {SCREEN_ID}\n")
+
 
 monitor_width, monitor_height = desktop_sizes[SCREEN_ID]
 assert monitor_width == SCREEN_WIDTH and monitor_height == SCREEN_HEIGHT, \
