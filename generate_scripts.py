@@ -32,15 +32,16 @@ def generate_scripts():
     # Generate a script for each template directory
     for template_dir in template_dirs:
         template_name = template_dir.name
-        script_name = f"run_{template_name}.sh"
+        script_name = f"run_{template_name}.command"
         script_path = parent_dir / script_name
         
         # Script content
         script_content = f"""#!/bin/bash
 # Auto-generated script to run {template_name}
 
+cd "$(dirname "$0")"
 source seeg_rsvp/.venv/bin/activate
-python game.py {template_name}
+python seeg_rsvp/game.py {template_name}
 """
         
         # Write the script file
@@ -50,14 +51,14 @@ python game.py {template_name}
         # Make the script executable (Unix permissions)
         try:
             os.chmod(script_path, 0o755)
-            print(f"✓ Created: {script_path}")
+            print(f"✓ Created executable: {script_path}")
         except Exception as e:
             print(f"✓ Created: {script_path} (Note: Could not set executable permission: {e})")
     
     print(f"\nAll scripts created in: {parent_dir}")
-    print("\nTo run a script on Mac/Linux:")
-    print("  cd to the parent directory")
-    print("  ./run_<template_name>.sh")
+    print("\nTo run a script on Mac:")
+    print("  - Double-click the .command file, or")
+    print("  - Run from terminal: ./run_<template_name>.command")
 
 if __name__ == "__main__":
     generate_scripts()
