@@ -11,20 +11,20 @@ import math
 ### SETTING UP THE GENERAL PARAMETERS ###
 
 N_FRAMES = 960 # unique frames
-N_REPEATS = 2 # number of times to repeat each frame
+N_REPEATS = 4 # number of times to repeat each frame
 
 TIME_ON = 100 # ms
 TIME_OFF = 150 # ms
 
 # Uncomment for the "test warmup" template
-N_FRAMES = 50 # unique frames
-TIME_ON = 200 # ms
-TIME_OFF = 300 # ms
+# N_FRAMES = 50 # unique frames
+# TIME_ON = 200 # ms
+# TIME_OFF = 300 # ms
 
 MIN_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 2 * 1000/(TIME_ON+TIME_OFF)) # minimum 2 seconds between target frames
 MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 30 * 1000/(TIME_ON+TIME_OFF)) # maximum 20 seconds between target frames. NOTE: this constraint is not enforced strictly, but is roughly guiding the number of target frames
 
-RANDOM_SEED_STRING = "1" # for reproducibility
+RANDOM_SEED_STRING = "4" # for reproducibility
 TEMPLATE_PREFIX = "first"
 
 TEMPLATE_NAME = f"{TEMPLATE_PREFIX}_n{N_FRAMES}_on{TIME_ON}_off{TIME_OFF}_s{RANDOM_SEED_STRING}"
