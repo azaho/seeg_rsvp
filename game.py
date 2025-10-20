@@ -272,7 +272,7 @@ while game_running:
                 create_event("trigger")
             elif event.key == pygame.K_q:
                 game_running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button in [1, 3]:  # Left or right click only
             process_click()
 
     current_time = time.time()

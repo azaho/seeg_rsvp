@@ -10,7 +10,7 @@ import math
 
 ### SETTING UP THE GENERAL PARAMETERS ###
 
-N_FRAMES = 960 # unique frames
+N_FRAMES = 480 # unique frames
 N_REPEATS = 4 # number of times to repeat each frame
 
 TIME_ON = 100 # ms
