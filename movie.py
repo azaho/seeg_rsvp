@@ -259,6 +259,21 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button in [1, 3]:  # Left or right click only
+            playing = not playing
+            if playing:
+                if playback_start_time is None:
+                    start_playback()
+                    create_event("playback_start")
+                    print("Playback started")
+                else:
+                    resume_playback()
+                    create_event("playback_resume")
+                    print("Playback resumed")
+            else:
+                pause_playback()
+                create_event("playback_pause", frame=frame_count)
+                print(f"Playback paused at frame {frame_count}")
         elif event.type == pygame.KEYDOWN:
             # Play/Pause toggle (SPACE or P keys)
             if event.key in [pygame.K_SPACE, pygame.K_p]:
