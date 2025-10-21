@@ -6,22 +6,26 @@ import time
 import sys
 import cv2
 import numpy as np
+import argparse
 
-# Get movie path from command line argument
-if len(sys.argv) < 2:
-    print("Usage: python movie.py <path_to_mp4_file> [square_interval] [start_time]")
-    print("Example: python movie.py video.mp4 30")
-    print("Example with start time: python movie.py video.mp4 30 00:01:30")
-    sys.exit(1)
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Play a video file with visual timing squares')
+parser.add_argument('movie_path', help='Path to the MP4 video file')
+parser.add_argument('--square-interval', '-s', type=int, default=100,
+                   help='Show white square every N frames (default: 100)')
+parser.add_argument('--start-time', '-t', default=None,
+                   help='Start time in HH:MM:SS format (default: 0)')
 
-movie_path = sys.argv[1]
+# Parse arguments
+args = parser.parse_args()
+
+# Validate movie path exists
+movie_path = args.movie_path
 assert os.path.exists(movie_path), f"Movie file {movie_path} not found."
 
-# Get square interval (every N frames) from command line, default to 30
-SQUARE_INTERVAL = int(sys.argv[2]) if len(sys.argv) > 2 else 30
-
-# Get start time from command line (HH:MM:SS format), default to None
-START_TIME_STR = sys.argv[3] if len(sys.argv) > 3 else None
+# Get square interval and start time
+SQUARE_INTERVAL = args.square_interval
+START_TIME_STR = args.start_time
 
 def parse_timestamp(time_str):
     """Convert HH:MM:SS to seconds"""
