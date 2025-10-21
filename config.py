@@ -1,14 +1,23 @@
 import numpy as np
+import math
 
 ### SCREEN SETTINGS
 
-SCREEN_ID = 0
+SCREEN_ID = -1 # of <0, use the last monitor (which will be the connected monitor if one is connected)
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
+SCREEN_INCHES = 21.5 # inches
 
 ### VISUAL STIMULUS SETTINGS
 
-VISUAL_STIMULUS_SIZE = 0.75 # proportion of the screen height
+DISTANCE_MONITOR_TO_PATIENT = 1.5 # meters
+STIMULUS_ANGULAR_SIZE = 8 # degrees
+
+_monitor_height = 1/100 * 2.54 * SCREEN_INCHES * SCREEN_HEIGHT / (SCREEN_WIDTH**2 + SCREEN_HEIGHT**2)**0.5 # in meters
+VISUAL_STIMULUS_SIZE = STIMULUS_ANGULAR_SIZE / 180 * math.pi * DISTANCE_MONITOR_TO_PATIENT / _monitor_height # Automatically calculated based on desired angular size and distance to patient
+
+# Uncomment for a fixed stimulus size
+# VISUAL_STIMULUS_SIZE = 0.75 # proportion of the screen height
 
 VISUAL_CROSS_SIZE = 1/64  # proportion of the stimulus size
 VISUAL_CROSS_THICKNESS = 1/720

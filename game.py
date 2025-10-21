@@ -52,7 +52,7 @@ save_events()
 pygame.init()
 
 desktop_sizes = pygame.display.get_desktop_sizes()
-SCREEN_ID = len(desktop_sizes) - 1
+if SCREEN_ID < 0: SCREEN_ID = len(desktop_sizes) - 1
 print("\nFound displays:")
 for i, (width, height) in enumerate(desktop_sizes):
     print(f"Display {i}: {width}x{height}")
