@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 480
         self.N_REPEATS = 4
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "4"
+        self.RANDOM_SEED_STRING = "1"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -191,6 +191,18 @@ class TemplateGenerator:
         
         with open(self.source_framedata_json, 'r') as f:
             framedata = json.load(f)
+
+        # Filtering step 1. Remove all target frames
+        framedata['framedata'] = [frame for frame in framedata['framedata'] if not frame['target']]
+
+        # Filtering step 2. Only keep unique frames (which have unique image paths)
+        unique_image_paths = set()
+        unique_framedata = []
+        for frame in framedata['framedata']:
+            if frame['image_path'] not in unique_image_paths:
+                unique_image_paths.add(frame['image_path'])
+                unique_framedata.append(frame)
+        framedata['framedata'] = unique_framedata
         
         self.N_FRAMES = len(framedata['framedata']) + self.config.N_TARGET_FRAMES
             
