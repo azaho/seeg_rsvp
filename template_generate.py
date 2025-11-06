@@ -13,21 +13,27 @@ import math
 N_FRAMES = 480 # unique frames
 N_REPEATS = 4 # number of times to repeat each frame
 
-TIME_ON = 100 # ms
-TIME_OFF = 150 # ms
+TIME_ON_FROM = 100 # ms
+TIME_ON_TO = 100 # ms
+TIME_OFF_FROM = 150 - 25 # ms
+TIME_OFF_TO = 150 + 25 # ms
 
-# Uncomment for the "test warmup" template
+# # Uncomment for the "test warmup" template
 # N_FRAMES = 50 # unique frames
-# TIME_ON = 200 # ms
-# TIME_OFF = 300 # ms
+# TIME_ON_FROM = 200 # ms
+# TIME_ON_TO = 200 # ms
+# TIME_OFF_FROM = 300 - 25 # ms
+# TIME_OFF_TO = 300 + 25 # ms
 
-MIN_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 2 * 1000/(TIME_ON+TIME_OFF)) # minimum 2 seconds between target frames
-MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 30 * 1000/(TIME_ON+TIME_OFF)) # maximum 20 seconds between target frames. NOTE: this constraint is not enforced strictly, but is roughly guiding the number of target frames
+TIME_ON_MEAN = (TIME_ON_FROM + TIME_ON_TO) / 2
+TIME_OFF_MEAN = (TIME_OFF_FROM + TIME_OFF_TO) / 2
+MIN_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 2 * 1000/(TIME_ON_MEAN+TIME_OFF_MEAN)) # minimum 2 seconds between target frames
+MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil( 30 * 1000/(TIME_ON_MEAN+TIME_OFF_MEAN)) # maximum 20 seconds between target frames. NOTE: this constraint is not enforced strictly, but is roughly guiding the number of target frames
 
 RANDOM_SEED_STRING = "4" # for reproducibility
 TEMPLATE_PREFIX = "first"
 
-TEMPLATE_NAME = f"{TEMPLATE_PREFIX}_n{N_FRAMES}_on{TIME_ON}_off{TIME_OFF}_s{RANDOM_SEED_STRING}"
+TEMPLATE_NAME = f"{TEMPLATE_PREFIX}_n{N_FRAMES}_on{TIME_ON_FROM}-{TIME_ON_TO}_off{TIME_OFF_FROM}-{TIME_OFF_TO}_s{RANDOM_SEED_STRING}"
 
 ### PICKING THE DATASET AND IMAGE ###
 
@@ -62,15 +68,29 @@ RANDOM_SEED = (int.from_bytes(RANDOM_SEED_STRING.encode(), 'little') * 19241) % 
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
-TOTAL_TIME = N_FRAMES * (TIME_ON + TIME_OFF) * N_REPEATS / 1000 # seconds
+
+N_STIMULI = N_FRAMES * N_REPEATS
+STIMULUS_ONSET_TIMES_PREDETERMINED = np.zeros(N_STIMULI)
+STIMULUS_OFFSET_TIMES_PREDETERMINED = np.zeros(N_STIMULI)
+STIMULUS_OFFSET_TIMES_PREDETERMINED[0] = (TIME_ON_MEAN + TIME_OFF_MEAN) / 1000
+for counter_i, image_i in enumerate(range(1, N_STIMULI)):
+    STIMULUS_ONSET_TIMES_PREDETERMINED[image_i] = STIMULUS_OFFSET_TIMES_PREDETERMINED[image_i-1] + random.uniform(TIME_ON_FROM, TIME_ON_TO) / 1000
+    STIMULUS_OFFSET_TIMES_PREDETERMINED[image_i] = STIMULUS_ONSET_TIMES_PREDETERMINED[image_i] + random.uniform(TIME_OFF_FROM, TIME_OFF_TO) / 1000
+
+TOTAL_TIME = STIMULUS_OFFSET_TIMES_PREDETERMINED[-1] # seconds
 
 TEMPLATE = {
     "settings": {
         "N_FRAMES": N_FRAMES,
         "N_REPEATS": N_REPEATS,
 
-        "TIME_ON": TIME_ON,
-        "TIME_OFF": TIME_OFF,
+        "TIME_ON_FROM": TIME_ON_FROM,
+        "TIME_ON_TO": TIME_ON_TO,
+        "TIME_OFF_FROM": TIME_OFF_FROM,
+        "TIME_OFF_TO": TIME_OFF_TO,
+        
+        "STIMULUS_ONSET_TIMES_PREDETERMINED": STIMULUS_ONSET_TIMES_PREDETERMINED.tolist(),
+        "STIMULUS_OFFSET_TIMES_PREDETERMINED": STIMULUS_OFFSET_TIMES_PREDETERMINED.tolist(),
 
         "MIN_DISTANCE_BETWEEN_TARGET_FRAMES": MIN_DISTANCE_BETWEEN_TARGET_FRAMES,
         "MAX_DISTANCE_BETWEEN_TARGET_FRAMES": MAX_DISTANCE_BETWEEN_TARGET_FRAMES,

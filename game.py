@@ -153,6 +153,136 @@ def show_instruction_screen():
     create_event("instructions_completed")
     return True  # Signal to continue
 
+### RESULTS SCREEN ###
+
+def show_results_screen(show_targets_caught=True, show_targets_missed=False, show_wrong_clicks=False, show_percentage=False, show_medal=True):
+    """Display results screen with performance metrics and medals.
+    show_targets_caught: show number of targets caught
+    show_targets_missed: show number of targets missed
+    show_wrong_clicks: show number of wrong clicks
+    show_percentage: show percentage of targets caught
+    show_medal: show medal
+    """
+    screen.blit(gray_frame_square, (0, 0))
+    
+    # Calculate metrics
+    num_targets = len(target_stimulus_idx)
+    num_targets_caught = len(targets_caught)
+    num_targets_missed = num_targets - num_targets_caught
+    num_wrong_clicks = len(FAILURE_CLICKS)
+    
+    # Calculate percentage
+    percentage = (num_targets_caught / num_targets * 100) if num_targets > 0 else 0
+    
+    # Determine medal
+    medal = ""
+    medal_color = (255, 255, 255)  # White default
+    if percentage >= 90:
+        medal = "GOLD MEDAL!"
+        medal_color = (255, 215, 0)  # Gold
+    elif percentage >= 80:
+        medal = "SILVER MEDAL!"
+        medal_color = (192, 192, 192)  # Silver
+    elif percentage >= 50:
+        medal = "BRONZE MEDAL!"
+        medal_color = (205, 127, 50)  # Bronze
+    
+    # Create fonts
+    title_font = pygame.font.Font(None, 72)
+    font_large = pygame.font.Font(None, 60)
+    font = pygame.font.Font(None, 48)
+    
+    # Results text
+    y_offset = SCREEN_HEIGHT // 6
+    
+    # Title
+    title_text = "Results"
+    title_surface = title_font.render(title_text, True, (255, 255, 255))
+    title_rect = title_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+    screen.blit(title_surface, title_rect)
+    y_offset += 100
+    
+    if show_targets_caught:
+        # Targets caught
+        caught_text = f"Targets caught: {num_targets_caught} / {num_targets}"
+        caught_surface = font_large.render(caught_text, True, (255, 255, 255))
+        caught_rect = caught_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+        screen.blit(caught_surface, caught_rect)
+        y_offset += 80
+    
+    if show_targets_missed:
+        # Targets missed
+        missed_text = f"Targets missed: {num_targets_missed}"
+        missed_surface = font.render(missed_text, True, (255, 255, 255))
+        missed_rect = missed_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+        screen.blit(missed_surface, missed_rect)
+        y_offset += 70
+    
+    if show_wrong_clicks:
+        # Wrong clicks
+        wrong_text = f"Wrong clicks: {num_wrong_clicks}"
+        wrong_surface = font.render(wrong_text, True, (255, 255, 255))
+        wrong_rect = wrong_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+        screen.blit(wrong_surface, wrong_rect)
+        y_offset += 80
+    
+    if show_percentage:
+        # Percentage
+        percentage_text = f"Accuracy: {percentage:.1f}%"
+        percentage_surface = font_large.render(percentage_text, True, (255, 255, 255))
+        percentage_rect = percentage_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset))
+        screen.blit(percentage_surface, percentage_rect)
+        y_offset += 90
+    
+    # Medal (if earned)
+    if show_medal and medal:
+        # Draw medal icon (circle with inner circle)
+        medal_icon_radius = 40
+        medal_icon_x = SCREEN_WIDTH // 2 - 200
+        medal_icon_y = y_offset
+        
+        # Outer circle (darker shade)
+        outer_color = tuple(int(c * 0.7) for c in medal_color)
+        pygame.draw.circle(screen, outer_color, (medal_icon_x, medal_icon_y), medal_icon_radius)
+        
+        # Inner circle (main color)
+        pygame.draw.circle(screen, medal_color, (medal_icon_x, medal_icon_y), medal_icon_radius - 5)
+        
+        # Inner shine circle (lighter shade)
+        shine_color = tuple(min(int(c * 1.3), 255) for c in medal_color)
+        pygame.draw.circle(screen, shine_color, (medal_icon_x - 8, medal_icon_y - 8), 12)
+        
+        # Medal text
+        medal_surface = font_large.render(medal, True, medal_color)
+        medal_rect = medal_surface.get_rect(center=(SCREEN_WIDTH // 2 + 50, y_offset))
+        screen.blit(medal_surface, medal_rect)
+        y_offset += 90
+    
+    # Exit instruction
+    exit_text = "Press Q to quit"
+    exit_surface = font.render(exit_text, True, (200, 200, 200))
+    exit_rect = exit_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset + 40))
+    screen.blit(exit_surface, exit_rect)
+    
+    pygame.display.flip()
+    
+    # Wait for Q key to quit
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                waiting = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    waiting = False
+    
+    create_event("results_screen_completed", 
+                 targets_caught=num_targets_caught,
+                 targets_missed=num_targets_missed,
+                 wrong_clicks=num_wrong_clicks,
+                 percentage=percentage,
+                 medal=medal)
+
 # Show instruction screen
 if not show_instruction_screen():
     pygame.quit()
@@ -167,8 +297,8 @@ current_image_i = 0
 CLICK_TIMES = []
 SUCCESS_CLICKS = []
 FAILURE_CLICKS = []
-STIMULUS_ONSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
-STIMULUS_OFFSET_TIMES_PREDETERMINED = np.zeros(len(TEMPLATE["framedata"]))
+STIMULUS_ONSET_TIMES_PREDETERMINED = None
+STIMULUS_OFFSET_TIMES_PREDETERMINED = None
 STIMULUS_ONSET_TIMES_ACTUAL = np.zeros(len(TEMPLATE["framedata"]))
 STIMULUS_OFFSET_TIMES_ACTUAL = np.zeros(len(TEMPLATE["framedata"]))
 target_stimulus_idx = [i for i, framedata in enumerate(TEMPLATE["framedata"]) if framedata["target"]]
@@ -187,16 +317,21 @@ def get_last_target_stimulus_idx(current_image_i):
     return None
 
 def start_stream():
-    global stream_running, current_image_i
+    global stream_running, current_image_i, STIMULUS_ONSET_TIMES_PREDETERMINED, STIMULUS_OFFSET_TIMES_PREDETERMINED
     assert not stream_running, "Stream is already running"
 
     start_i = current_image_i
-    
     start_time = time.time()
     stream_running = True
-    for counter_i, image_i in enumerate(range(start_i, len(TEMPLATE["framedata"]))):
-        STIMULUS_ONSET_TIMES_PREDETERMINED[image_i] = start_time + counter_i * (TEMPLATE["settings"]["TIME_ON"] + TEMPLATE["settings"]["TIME_OFF"]) / 1000
-        STIMULUS_OFFSET_TIMES_PREDETERMINED[image_i] = start_time + counter_i * (TEMPLATE["settings"]["TIME_ON"] + TEMPLATE["settings"]["TIME_OFF"]) / 1000 + TEMPLATE["settings"]["TIME_ON"] / 1000
+
+    if STIMULUS_ONSET_TIMES_PREDETERMINED is None:
+        assert current_image_i == 0, "Current image index must be 0 if stimulus onset times are not provided in the template"
+        STIMULUS_ONSET_TIMES_PREDETERMINED = np.array(TEMPLATE["settings"]["STIMULUS_ONSET_TIMES_PREDETERMINED"]) + start_time
+        STIMULUS_OFFSET_TIMES_PREDETERMINED = np.array(TEMPLATE["settings"]["STIMULUS_OFFSET_TIMES_PREDETERMINED"]) + start_time
+    else:
+        STIMULUS_ONSET_TIMES_PREDETERMINED[current_image_i:] = np.array(TEMPLATE["settings"]["STIMULUS_ONSET_TIMES_PREDETERMINED"][current_image_i:]) + start_time
+        STIMULUS_OFFSET_TIMES_PREDETERMINED[current_image_i:] = np.array(TEMPLATE["settings"]["STIMULUS_OFFSET_TIMES_PREDETERMINED"][current_image_i:]) + start_time
+    
     create_event("stream_start", start_i=start_i)
 
 def process_click():
@@ -290,6 +425,9 @@ while game_running:
         if current_image_i >= len(TEMPLATE["framedata"]):
             stream_running = False
             create_event("stream_end")
+            # Show results screen after stream ends
+            show_results_screen()
+            game_running = False  # End the game after showing results
     
     if current_time - last_backup >= BACKUP_CONFIG_INTERVAL:
         save_events()
