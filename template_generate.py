@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 480
         self.N_REPEATS = 4
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "2"
+        self.RANDOM_SEED_STRING = "4"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -67,7 +67,8 @@ class TemplateConfig:
         self.TIME_OFF_TO = 150 + 25
 
         # # for the first tutorial session, we will use the following settings
-        # self.N_FRAMES = 50
+        # self.N_FRAMES = 60
+        # self.N_REPEATS = 2
         # self.TIME_ON_FROM = 200
         # self.TIME_ON_TO = 200
         # self.TIME_OFF_FROM = 300 - 25
@@ -83,7 +84,7 @@ class TemplateConfig:
             2 * 1000 / (self.TIME_ON_MEAN + self.TIME_OFF_MEAN)
         )
         self.MAX_DISTANCE_BETWEEN_TARGET_FRAMES = math.ceil(
-            30 * 1000 / (self.TIME_ON_MEAN + self.TIME_OFF_MEAN)
+            20 * 1000 / (self.TIME_ON_MEAN + self.TIME_OFF_MEAN)
         )
         self.N_TARGET_FRAMES = math.ceil(
             self.N_FRAMES * 2 / (self.MAX_DISTANCE_BETWEEN_TARGET_FRAMES + self.MIN_DISTANCE_BETWEEN_TARGET_FRAMES)
@@ -100,8 +101,28 @@ class TemplateConfig:
             f"off{self.TIME_OFF_FROM}-{self.TIME_OFF_TO}"
         )
         self.RANDOM_SEED = (
-            int.from_bytes(self.RANDOM_SEED_STRING.encode(), 'little') * 19241
+            int.from_bytes((self.RANDOM_SEED_STRING + "salt_for_reproducibility").encode(), 'little') * 19241
         ) % (2**32)
+        
+        # Dataset selection distribution
+        self.DATASET_DISTRIBUTION = {
+            "ILSVRC2012_img_val": 0.8,
+             "OASIS": 0.2 if not self.TEMPLATE_PREFIX == "tutorial" else 0.0, # Remove OASIS for the tutorial session
+            # "FER": 0.0  # remove FER for now
+        }
+    
+    def pick_dataset(self) -> str:
+        """Randomly pick a dataset based on distribution"""
+        r = random.random()
+        cumulative = 0.0
+        
+        for dataset_name, prob in self.DATASET_DISTRIBUTION.items():
+            cumulative += prob
+            if r < cumulative:
+                return dataset_name
+        
+        # Fallback to first dataset if something goes wrong
+        return list(self.DATASET_DISTRIBUTION.keys())[0]
 
 
 ### TEMPLATE GENERATOR ###
@@ -144,13 +165,7 @@ class TemplateGenerator:
     
     def _pick_dataset(self) -> str:
         """Randomly pick a dataset based on distribution"""
-        r = random.random()
-        if r < 0.8:
-            return "ILSVRC2012_img_val"
-        else:
-            return "OASIS"
-        # else:
-        #     return "FER" # remove FER for now
+        return self.config.pick_dataset()
     
     def _pick_image(self, dataset_name: str, target: bool = False) -> Optional[str]:
         """Pick an image from a dataset that hasn't been picked yet"""
