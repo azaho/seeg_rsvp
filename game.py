@@ -129,12 +129,16 @@ def show_instruction_screen():
         "",
         "",
         "",
+        "",
+        "",
+        "",
+        "",
         "A session lasts up to 8 minutes.",
         "Click mouse or press any key to start the session."
     ]
     
     # Render and display text
-    y_offset = SCREEN_HEIGHT // 6  # Start at 1/6 from top
+    y_offset = SCREEN_HEIGHT // 9  # Start at 1/9 from top
     for line in instructions:
         # Render shadow text first
         shadow_surface = font.render(line, True, (0, 0, 0))  # Black text
