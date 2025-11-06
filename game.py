@@ -37,6 +37,11 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 shutil.copy2('config.py', os.path.join(SAVE_DIR, f'config_{get_timecode()}.py'))
 shutil.copy2(template_path, os.path.join(SAVE_DIR, f'template.json'))
+# Copy the whole parent directory of template_path (i.e., the template folder) to SAVE_DIR/templates/{template_name}
+template_parent_dir = os.path.dirname(template_path)
+template_name = os.path.basename(template_parent_dir)
+shutil.copytree(template_parent_dir, os.path.join(SAVE_DIR, template_name), dirs_exist_ok=True)
+
 
 EVENTS_SAVE_DIR = os.path.join(SAVE_DIR, 'events')
 os.makedirs(EVENTS_SAVE_DIR, exist_ok=True)
@@ -155,7 +160,7 @@ def show_instruction_screen():
 
 ### RESULTS SCREEN ###
 
-def show_results_screen(show_targets_caught=True, show_targets_missed=False, show_wrong_clicks=False, show_percentage=False, show_medal=True):
+def show_results_screen(show_targets_caught=True, show_targets_missed=False, show_wrong_clicks=True, show_percentage=False, show_medal=True):
     """Display results screen with performance metrics and medals.
     show_targets_caught: show number of targets caught
     show_targets_missed: show number of targets missed
@@ -163,7 +168,7 @@ def show_results_screen(show_targets_caught=True, show_targets_missed=False, sho
     show_percentage: show percentage of targets caught
     show_medal: show medal
     """
-    screen.blit(gray_frame_square, (0, 0))
+    screen.fill((0, 0, 0))
     
     # Calculate metrics
     num_targets = len(target_stimulus_idx)
