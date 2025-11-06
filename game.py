@@ -83,12 +83,12 @@ def to_pygame_frame(frame):
     return pygame.image.frombuffer(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes(), (frame.shape[1], frame.shape[0]), 'RGB')
 
 gray_frame = to_pygame_frame(screen_setup.get_gray_frame(cross=True, square=False))
+from tqdm import tqdm
+
 gray_frame_square = to_pygame_frame(screen_setup.get_gray_frame(cross=True, square=True))
 
 image_frames = []
-for frame_i, framedata in enumerate(TEMPLATE["framedata"]):
-    if frame_i % 100 == 0 or frame_i == len(TEMPLATE["framedata"]) - 1:
-        print(f"Preparing frame {frame_i+1} of {len(TEMPLATE['framedata'])}")
+for framedata in tqdm(TEMPLATE["framedata"], desc="Preparing frames"):
     image_frames.append(to_pygame_frame(screen_setup.preprocess_image(framedata, cross=True)))
 
 screen.blit(gray_frame, (0, 0))

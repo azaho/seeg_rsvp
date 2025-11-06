@@ -44,6 +44,7 @@ import shutil
 import time
 import screen_setup
 import math
+from tqdm import tqdm
 from typing import Dict, List, Optional
 from image_datasets.datasets import Dataset, ILSVRC2012Dataset, OASISDataset, FERDataset
 
@@ -54,14 +55,24 @@ class TemplateConfig:
     """Configuration for template generation"""
     def __init__(self, template_prefix: Optional[str] = None):
         # Frame settings
-        self.N_FRAMES = 10
+        self.N_FRAMES = 480
         self.N_REPEATS = 4
+        # Random seed for reproducibility and session variation
+        self.RANDOM_SEED_STRING = "2"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
         self.TIME_ON_TO = 100
-        self.TIME_OFF_FROM = 125
-        self.TIME_OFF_TO = 175
+        self.TIME_OFF_FROM = 150 - 25
+        self.TIME_OFF_TO = 150 + 25
+
+        # # for the first tutorial session, we will use the following settings
+        # self.N_FRAMES = 50
+        # self.TIME_ON_FROM = 200
+        # self.TIME_ON_TO = 200
+        # self.TIME_OFF_FROM = 300 - 25
+        # self.TIME_OFF_TO = 300 + 25
+        # template_prefix = "tutorial"
         
         # Derived timing
         self.TIME_ON_MEAN = (self.TIME_ON_FROM + self.TIME_ON_TO) / 2
@@ -78,16 +89,15 @@ class TemplateConfig:
             self.N_FRAMES * 2 / (self.MAX_DISTANCE_BETWEEN_TARGET_FRAMES + self.MIN_DISTANCE_BETWEEN_TARGET_FRAMES)
         )
         
-        # Random seed and naming
-        self.RANDOM_SEED_STRING = "4"
-        self.TEMPLATE_PREFIX = template_prefix if template_prefix is not None else "first"
+        self.TEMPLATE_PREFIX = template_prefix if template_prefix is not None else "trial"
         
         # Derived properties
         self.TEMPLATE_NAME = (
-            f"{self.TEMPLATE_PREFIX}_n{self.N_FRAMES}_"
+            f"{self.TEMPLATE_PREFIX}_"
+            f"s{self.RANDOM_SEED_STRING}_"
+            f"n{self.N_FRAMES}_x{self.N_REPEATS}_"
             f"on{self.TIME_ON_FROM}-{self.TIME_ON_TO}_"
-            f"off{self.TIME_OFF_FROM}-{self.TIME_OFF_TO}_"
-            f"s{self.RANDOM_SEED_STRING}"
+            f"off{self.TIME_OFF_FROM}-{self.TIME_OFF_TO}"
         )
         self.RANDOM_SEED = (
             int.from_bytes(self.RANDOM_SEED_STRING.encode(), 'little') * 19241
@@ -135,12 +145,12 @@ class TemplateGenerator:
     def _pick_dataset(self) -> str:
         """Randomly pick a dataset based on distribution"""
         r = random.random()
-        if r < 0.4:
+        if r < 0.8:
             return "ILSVRC2012_img_val"
-        elif r < 0.8:
-            return "OASIS"
         else:
-            return "FER"
+            return "OASIS"
+        # else:
+        #     return "FER" # remove FER for now
     
     def _pick_image(self, dataset_name: str, target: bool = False) -> Optional[str]:
         """Pick an image from a dataset that hasn't been picked yet"""
@@ -250,30 +260,22 @@ class TemplateGenerator:
             
             # Step 1: Add target frames
             print(f"Generating {n_target_frames} target frames...")
-            for i in range(n_target_frames):
-                if i % 100 == 0 or i == n_target_frames - 1:
-                    print(f"Adding target frames: {i+1}/{n_target_frames}")
+            for i in tqdm(range(n_target_frames), desc="Adding target frames"):
                 self.framedata.append(self._add_frame(target=True))
             
             # Step 2: Process and add non-target frames from source
             print(f"Processing {len(source_non_target_frames)} non-target frames from source...")
-            for i, source_frame in enumerate(source_non_target_frames):
-                if i % 100 == 0 or i == len(source_non_target_frames) - 1:
-                    print(f"Processing non-target frames: {i+1}/{len(source_non_target_frames)}")
+            for source_frame in tqdm(source_non_target_frames, desc="Processing non-target frames"):
                 self.framedata.append(self._process_source_frame(source_frame))
         else:
             # Original logic: generate all frames from scratch
             # Step 1: Add target frames
-            for i in range(n_target_frames):
-                if i % 100 == 0 or i == n_target_frames - 1:
-                    print(f"Adding target frames: {i+1}/{n_target_frames}")
+            for i in tqdm(range(n_target_frames), desc="Adding target frames"):
                 self.framedata.append(self._add_frame(target=True))
             
             # Step 2: Add non-target frames
             n_non_target_frames = self.config.N_FRAMES - n_target_frames
-            for i in range(n_non_target_frames):
-                if i % 100 == 0 or i == n_non_target_frames - 1:
-                    print(f"Adding non-target frames: {i+1}/{n_non_target_frames}")
+            for i in tqdm(range(n_non_target_frames), desc="Adding non-target frames"):
                 self.framedata.append(self._add_frame(target=False))
         
         # Step 3: Repeat frames
