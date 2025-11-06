@@ -176,6 +176,8 @@ def show_results_screen(show_targets_caught=True, show_targets_missed=False, sho
     show_percentage: show percentage of targets caught
     show_medal: show medal
     """
+    pygame.mixer.Sound("sound_finish.mp3").play()
+    
     screen.fill((0, 0, 0))
     
     # Calculate metrics
