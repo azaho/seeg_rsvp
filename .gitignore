@@ -7,3 +7,5 @@ trial_data/
 templates*/
 
 **/__pycache__/
+
+imagebank/
