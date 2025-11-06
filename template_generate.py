@@ -194,6 +194,7 @@ class TemplateGenerator:
 
         # Filtering step 1. Remove all target frames
         framedata['framedata'] = [frame for frame in framedata['framedata'] if not frame['target']]
+        print(f"Filtered {len(framedata['framedata'])} non-target frames")
 
         # Filtering step 2. Only keep unique frames (which have unique image paths)
         unique_image_paths = set()
@@ -203,6 +204,7 @@ class TemplateGenerator:
                 unique_image_paths.add(frame['image_path'])
                 unique_framedata.append(frame)
         framedata['framedata'] = unique_framedata
+        print(f"Filtered {len(framedata['framedata'])} unique non-target frames")
         
         self.N_FRAMES = len(framedata['framedata']) + self.config.N_TARGET_FRAMES
             
@@ -313,20 +315,21 @@ class TemplateGenerator:
         np.random.shuffle(self.framedata)
         
         # Step 5: Enforce distance constraints between target frames
-        print("Enforcing distance constraints...")
-        self._enforce_target_distance_constraints()
+        # print("Enforcing distance constraints...")
+        # self._enforce_target_distance_constraints()
     
     def _enforce_target_distance_constraints(self) -> None:
         """Ensure minimum distance between target frames"""
         pop_image_paths = []
-        last_target_frame_i = 0
+        last_target_frame_i = -100
         
         for i, frame in enumerate(self.framedata):
             if frame['target']:
-                last_target_frame_i = i
-            else:
                 if i - last_target_frame_i < self.config.MIN_DISTANCE_BETWEEN_TARGET_FRAMES:
                     pop_image_paths.append(frame['image_path'])
+                else:
+                    last_target_frame_i = i
+        print("Number of target frames to replace using non-target frames: ", len(pop_image_paths))
         
         # Identify frames to replace
         pop_frames_i = [
