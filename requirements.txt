@@ -1,5 +1,11 @@
 opencv-python
 numpy
-pygame
+pygame-ce
 nltk
 pandas
+matplotlib
+ipykernel
+torch
+transformers
+torchvision
+tqdm
