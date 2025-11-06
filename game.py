@@ -121,11 +121,16 @@ def show_instruction_screen():
     
     # Instruction text
     instructions = [
-        "A stream of images will keep rapidly flowing as you look at the cross",
-        "in the middle of the screen. Whenever you see a dog in the image,",
-        "press MOUSE CLICK. A session lasts up to 8 minutes.",
+        "GAME RULES:",
+        "1. Keep your eyes looking at the crosshair in the middle of the screen.",
+        "2. Whenever you see a dog, press MOUSE CLICK!",
+        "3. You have 2 seconds to catch each dog.",
         "",
-        "Click mouse or press any key to start."
+        "",
+        "",
+        "",
+        "A session lasts up to 8 minutes.",
+        "Click mouse or press any key to start the session."
     ]
     
     # Render and display text
