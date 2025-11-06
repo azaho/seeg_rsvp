@@ -7,6 +7,7 @@ import time
 import shutil
 import sys
 import cv2
+from tqdm import tqdm
 
 template_name = sys.argv[1] if len(sys.argv) > 1 else "test"
 template_path = f"templates/{template_name}/template.json"
@@ -83,8 +84,6 @@ def to_pygame_frame(frame):
     return pygame.image.frombuffer(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes(), (frame.shape[1], frame.shape[0]), 'RGB')
 
 gray_frame = to_pygame_frame(screen_setup.get_gray_frame(cross=True, square=False))
-from tqdm import tqdm
-
 gray_frame_square = to_pygame_frame(screen_setup.get_gray_frame(cross=True, square=True))
 
 image_frames = []
