@@ -267,10 +267,16 @@ def show_results_screen(show_targets_caught=True, show_targets_missed=False, sho
         screen.blit(medal_surface, medal_rect)
         y_offset += 90
     
+    # Thank you message
+    thank_you_text = "thank you for contributing to science!"
+    thank_you_surface = font.render(thank_you_text, True, (180, 220, 180))
+    thank_you_rect = thank_you_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset + 100 + 20))
+    screen.blit(thank_you_surface, thank_you_rect)
+
     # Exit instruction
-    exit_text = "Press Q to quit"
+    exit_text = "Press Q to complete the session"
     exit_surface = font.render(exit_text, True, (200, 200, 200))
-    exit_rect = exit_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset + 40))
+    exit_rect = exit_surface.get_rect(center=(SCREEN_WIDTH // 2, y_offset + 100 + 60))
     screen.blit(exit_surface, exit_rect)
     
     pygame.display.flip()
