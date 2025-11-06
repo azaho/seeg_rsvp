@@ -1,6 +1,8 @@
 .venv
 
-image_datasets/
+image_datasets/OASIS/OASIS/
+image_datasets/FER/
+image_datasets/ILSVRC2012_img_val/ILSVRC2012_img_val/
 
 trial_data/
 
