@@ -32,7 +32,7 @@ create_event("application_start", template_name=template_name)
 def get_timecode():
     return time.strftime('%Y-%m-%d_%H-%M-%S')
 
-SAVE_DIR = f"trial_data/{get_timecode()}/"
+SAVE_DIR = f"trial_data/trial_data_{get_timecode()}/"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 shutil.copy2('config.py', os.path.join(SAVE_DIR, f'config_{get_timecode()}.py'))
