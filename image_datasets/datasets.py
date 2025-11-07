@@ -49,6 +49,25 @@ class Dataset(ABC):
         pass
 
 
+class TrailerFacesHQDataset(Dataset):
+    """Trailer Faces HQ dataset"""
+    
+    def __init__(self, base_path: str):
+        super().__init__(base_path)
+        
+    def get_dataset_name(self) -> str:
+        return "TrailerFacesHQ"
+    
+    def preprocess(self) -> None:
+        """Preprocess Trailer Faces HQ dataset"""
+        # Get all image files in the base path
+        self.image_files = [f for f in os.listdir(self.base_path) if f.endswith(('.jpg',))]
+        print(f"TrailerFacesHQ: Found {len(self.image_files)} image files")
+
+        self.non_target_images = self.image_files
+        self.target_images = []
+
+
 class ILSVRC2012Dataset(Dataset):
     """ImageNet ILSVRC2012 validation set dataset"""
     

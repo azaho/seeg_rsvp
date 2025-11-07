@@ -46,7 +46,7 @@ import screen_setup
 import math
 from tqdm import tqdm
 from typing import Dict, List, Optional
-from image_datasets.datasets import Dataset, ILSVRC2012Dataset, OASISDataset, FERDataset
+from image_datasets.datasets import Dataset, ILSVRC2012Dataset, OASISDataset, FERDataset, TrailerFacesHQDataset
 
 
 ### CONFIGURATION ###
@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 480
         self.N_REPEATS = 4
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "4"
+        self.RANDOM_SEED_STRING = "1"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -106,8 +106,9 @@ class TemplateConfig:
         
         # Dataset selection distribution
         self.DATASET_DISTRIBUTION = {
-            "ILSVRC2012_img_val": 0.8,
-             "OASIS": 0.2 if not self.TEMPLATE_PREFIX == "tutorial" else 0.0, # Remove OASIS for the tutorial session
+            "ILSVRC2012_img_val": 0.7,
+             "OASIS": 0.15 if not self.TEMPLATE_PREFIX == "tutorial" else 0.0, # Remove OASIS for the tutorial session
+             "TrailerFacesHQ": 0.15,
             # "FER": 0.0  # remove FER for now
         }
     
@@ -483,6 +484,13 @@ def main(source_framedata_json: Optional[str] = None, template_prefix: Optional[
     fer_dataset.preprocess()
     datasets[fer_dataset.get_dataset_name()] = fer_dataset
     
+    # Trailer Faces HQ
+    trailer_faces_hq_dataset = TrailerFacesHQDataset(
+        base_path="image_datasets/tfhqv2"
+    )
+    trailer_faces_hq_dataset.preprocess()
+    datasets[trailer_faces_hq_dataset.get_dataset_name()] = trailer_faces_hq_dataset
+
     # Generate template
     generator = TemplateGenerator(config, datasets, source_framedata_json=source_framedata_json)
     generator.generate_frames()

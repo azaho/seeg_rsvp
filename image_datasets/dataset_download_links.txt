@@ -1,2 +1,11 @@
-face expression dataset
+face expression dataset *UNUSED*
 https://www.kaggle.com/datasets/jonathanoheix/face-expression-recognition-dataset?resource=download
+
+AffectNet *UNUSED*
+https://www.kaggle.com/datasets/mstjebashazida/affectnet?resource=download
+
+Face Expression in the Wild (EXP-W). Cleaned VERsion *UNUSED*
+https://github.com/markson14/ExpWCleaned?tab=readme-ov-file
+
+Trailer Faces HQ
+https://huggingface.co/datasets/justinpinkney/trailer-faces-hq
