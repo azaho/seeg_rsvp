@@ -55,7 +55,7 @@ class TemplateConfig:
     """Configuration for template generation"""
     def __init__(self, template_prefix: Optional[str] = None):
         # Frame settings
-        self.N_FRAMES = 60#480
+        self.N_FRAMES = 480
         self.N_REPEATS = 4
         # Random seed for reproducibility and session variation
         self.RANDOM_SEED_STRING = "2"
@@ -298,6 +298,8 @@ class TemplateGenerator:
         if self.source_framedata_json:
             # Load non-target frames from source JSON
             source_non_target_frames = self._load_source_framedata()
+
+            n_target_frames = self.config.N_FRAMES - len(source_non_target_frames)
             
             # Step 1: Add target frames
             print(f"Generating {n_target_frames} target frames...")
