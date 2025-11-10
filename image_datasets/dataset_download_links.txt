@@ -9,3 +9,6 @@ https://github.com/markson14/ExpWCleaned?tab=readme-ov-file
 
 Trailer Faces HQ
 https://huggingface.co/datasets/justinpinkney/trailer-faces-hq
+
+ILSVRC2012_img_val
+wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --no-check-certificate
