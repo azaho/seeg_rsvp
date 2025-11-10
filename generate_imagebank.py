@@ -17,7 +17,7 @@ import json
 import screen_setup
 from typing import Dict, List
 from tqdm import tqdm
-from image_datasets.datasets import Dataset, ILSVRC2012Dataset, OASISDataset, FERDataset
+from image_datasets.datasets import Dataset, ILSVRC2012Dataset, OASISDataset, FERDataset, TrailerFacesHQDataset
 
 
 ### CONFIGURATION ###
@@ -43,14 +43,17 @@ class ImageBankGenerator:
         random.seed(config.RANDOM_SEED)
         np.random.seed(config.RANDOM_SEED)
     
-    def process_all_images(self) -> None:
+    def process_all_images(self, max_n_images: int = None) -> None:
         """Process all non-target images from the dataset"""
         non_target_images = self.dataset.get_non_target_images()
         dataset_name = self.dataset.get_dataset_name()
         
         print(f"\nProcessing non-target images from {dataset_name}...")
+
+        if max_n_images is None:
+            max_n_images = len(non_target_images)
         
-        for image_filename in tqdm(non_target_images, desc=f"{dataset_name}"):
+        for image_filename in tqdm(non_target_images[:max_n_images], desc=f"{dataset_name}"):
             image_path = self.dataset.get_image_path(image_filename)
             
             # Generate random crop
@@ -125,7 +128,7 @@ def main():
         blacklisted_classes=[]
     )
     ilsvrc_dataset.preprocess()
-    datasets.append(ilsvrc_dataset)
+    # datasets.append(ilsvrc_dataset)
     
     # OASIS
     print("\n--- Processing OASIS ---")
@@ -138,18 +141,17 @@ def main():
     oasis_dataset.preprocess()
     datasets.append(oasis_dataset)
     
-    # FER (Facial expressions)
-    print("\n--- Processing FER ---")
-    fer_dataset = FERDataset(
-        base_path="image_datasets/FER/FER"
+    # Trailer Faces HQ
+    trailer_faces_hq_dataset = TrailerFacesHQDataset(
+        base_path="image_datasets/tfhqv2"
     )
-    fer_dataset.preprocess()
-    datasets.append(fer_dataset)
+    trailer_faces_hq_dataset.preprocess()
+    datasets.append(trailer_faces_hq_dataset)
     
     # Process each dataset
     for dataset in datasets:
         generator = ImageBankGenerator(config, dataset)
-        generator.process_all_images()
+        generator.process_all_images()#max_n_images=int(44100 / 0.7 * 0.15)) # 44100 is the number of images in the ILSVRC2012 dataset which are not target images
         generator.save_imagebank(output_dir)
     
     print("\n=== Done! ===")

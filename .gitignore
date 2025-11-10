@@ -12,3 +12,5 @@ templates*/
 **/__pycache__/
 
 imagebank/
+
+_dataset_zip/
