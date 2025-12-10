@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 480
         self.N_REPEATS = 4
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "2"
+        self.RANDOM_SEED_STRING = "1"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
