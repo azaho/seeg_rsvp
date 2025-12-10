@@ -134,17 +134,20 @@ class ILSVRC2012Dataset(Dataset):
         
         # Get target classes (synset descendants)
         target_classes = self._get_synset_descendants(self.target_synset)
+
+        missed_target_images = ['ILSVRC2012_val_00035676.JPEG'] # manually added
         
         # Separate target and non-target images
         self.target_images = [
             filename for filename in filename_synset_mapping.keys()
-            if filename_synset_mapping[filename] in target_classes
+            if filename_synset_mapping[filename] in target_classes or filename in missed_target_images
         ]
         
         self.non_target_images = [
             filename for filename in filename_synset_mapping.keys()
             if (filename_synset_mapping[filename] not in target_classes and
-                filename_synset_mapping[filename] not in self.blacklisted_classes)
+                filename_synset_mapping[filename] not in self.blacklisted_classes and
+                filename not in missed_target_images)
         ]
         
         print(f"ILSVRC2012_img_val: Found {len(self.target_images)} target images "
