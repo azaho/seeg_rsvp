@@ -55,10 +55,10 @@ class TemplateConfig:
     """Configuration for template generation"""
     def __init__(self, template_prefix: Optional[str] = None):
         # Frame settings
-        self.N_FRAMES = 480
-        self.N_REPEATS = 4
+        self.N_FRAMES = 960
+        self.N_REPEATS = 2
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "1"
+        self.RANDOM_SEED_STRING = "3"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -67,13 +67,14 @@ class TemplateConfig:
         self.TIME_OFF_TO = 150 + 25
 
         # # for the first tutorial session, we will use the following settings
-        # self.N_FRAMES = 60
+        # self.N_FRAMES = 160
         # self.N_REPEATS = 2
-        # self.TIME_ON_FROM = 200
-        # self.TIME_ON_TO = 200
-        # self.TIME_OFF_FROM = 300 - 25
-        # self.TIME_OFF_TO = 300 + 25
+        # self.TIME_ON_FROM = 100
+        # self.TIME_ON_TO = 100
+        # self.TIME_OFF_FROM = 400 - 25
+        # self.TIME_OFF_TO = 400 + 25
         # template_prefix = "tutorial"
+        # self.RANDOM_SEED_STRING = "T"
         
         # Derived timing
         self.TIME_ON_MEAN = (self.TIME_ON_FROM + self.TIME_ON_TO) / 2
@@ -154,24 +155,24 @@ class TemplateGenerator:
         time_on_mean = self.config.TIME_ON_MEAN
         time_off_mean = self.config.TIME_OFF_MEAN
 
-        # Old, mistaken timing calculation
-        self.stimulus_offset_times[0] = (time_on_mean + time_off_mean) / 1000
-        for i in range(1, n_stimuli):
-            on_time = random.uniform(self.config.TIME_ON_FROM, self.config.TIME_ON_TO) / 1000
-            off_time = random.uniform(self.config.TIME_OFF_FROM, self.config.TIME_OFF_TO) / 1000
-            
-            self.stimulus_onset_times[i] = self.stimulus_offset_times[i-1] + on_time
-            self.stimulus_offset_times[i] = self.stimulus_onset_times[i] + off_time
-        
-        # # # New, correct timing calculation
-        # self.stimulus_onset_times[0] = (time_on_mean+time_off_mean) / 1000 # Start one stimulus cycle later to allow the task laptop some time for processing
-        # self.stimulus_offset_times[0] = self.stimulus_onset_times[0] + time_on_mean / 1000
+        # # #Old, mistaken timing calculation
+        # self.stimulus_offset_times[0] = (time_on_mean + time_off_mean) / 1000
         # for i in range(1, n_stimuli):
         #     on_time = random.uniform(self.config.TIME_ON_FROM, self.config.TIME_ON_TO) / 1000
         #     off_time = random.uniform(self.config.TIME_OFF_FROM, self.config.TIME_OFF_TO) / 1000
             
-        #     self.stimulus_onset_times[i] = self.stimulus_offset_times[i-1] + off_time
-        #     self.stimulus_offset_times[i] = self.stimulus_onset_times[i] + on_time
+        #     self.stimulus_onset_times[i] = self.stimulus_offset_times[i-1] + on_time
+        #     self.stimulus_offset_times[i] = self.stimulus_onset_times[i] + off_time
+        
+        # # # New, correct timing calculation
+        self.stimulus_onset_times[0] = (time_on_mean+time_off_mean) / 1000 # Start one stimulus cycle later to allow the task laptop some time for processing
+        self.stimulus_offset_times[0] = self.stimulus_onset_times[0] + time_on_mean / 1000
+        for i in range(1, n_stimuli):
+            on_time = random.uniform(self.config.TIME_ON_FROM, self.config.TIME_ON_TO) / 1000
+            off_time = random.uniform(self.config.TIME_OFF_FROM, self.config.TIME_OFF_TO) / 1000
+            
+            self.stimulus_onset_times[i] = self.stimulus_offset_times[i-1] + off_time
+            self.stimulus_offset_times[i] = self.stimulus_onset_times[i] + on_time
         
         self.total_time = self.stimulus_offset_times[-1]
     
