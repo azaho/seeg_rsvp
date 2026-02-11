@@ -67,14 +67,13 @@ class TemplateConfig:
         self.TIME_OFF_TO = 150 + 25
 
         # # for the first tutorial session, we will use the following settings
-        # self.N_FRAMES = 160
-        # self.N_REPEATS = 2
-        # self.TIME_ON_FROM = 100
-        # self.TIME_ON_TO = 100
-        # self.TIME_OFF_FROM = 400 - 25
-        # self.TIME_OFF_TO = 400 + 25
-        # template_prefix = "tutorial"
-        # self.RANDOM_SEED_STRING = "T"
+        self.N_FRAMES = 160
+        self.N_REPEATS = 2
+        self.TIME_ON_FROM = 100
+        self.TIME_ON_TO = 100
+        self.TIME_OFF_FROM = 400 - 25
+        self.TIME_OFF_TO = 400 + 25
+        self.RANDOM_SEED_STRING = "T"
         
         # Derived timing
         self.TIME_ON_MEAN = (self.TIME_ON_FROM + self.TIME_ON_TO) / 2
@@ -218,6 +217,11 @@ class TemplateGenerator:
                 unique_framedata.append(frame)
         framedata['framedata'] = unique_framedata
         print(f"Filtered {len(framedata['framedata'])} unique non-target frames")
+
+        # Clip framedata to N_frames and remove N_target_frames
+        n_non_target_needed = self.config.N_FRAMES - self.config.N_TARGET_FRAMES
+        framedata['framedata'] = random.sample(framedata['framedata'], n_non_target_needed)
+        print(f"Trimmed framedata to {len(framedata['framedata'])} unique non-target frames (clipped to N_frames and removed N_target_frames; random subset)")
         
         self.N_FRAMES = len(framedata['framedata']) + self.config.N_TARGET_FRAMES
             
