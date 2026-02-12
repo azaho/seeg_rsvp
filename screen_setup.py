@@ -69,10 +69,13 @@ def crop_image(img: np.ndarray, crop_dict: dict) -> np.ndarray:
     height = crop_dict["height"]
     return img[top:top + height, left:left + width]
 
-def preprocess_image(framedata, cross: bool = True):
+def preprocess_image(framedata, cross: bool = True, force_size: int = None):
     img = cv2.imread(framedata["image_path"])
     img = crop_image(img, framedata["crop"])
-    img = resize_shorter_to(img, VISUAL_STIMULUS_WIDTH)
+    if force_size is not None:
+        img = resize_shorter_to(img, force_size)
+    else:
+        img = resize_shorter_to(img, VISUAL_STIMULUS_WIDTH)
     
     if cross:
         img = draw_cross(img)
