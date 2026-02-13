@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 960
         self.N_REPEATS = 2
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "3"
+        self.RANDOM_SEED_STRING = "5"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -66,14 +66,20 @@ class TemplateConfig:
         self.TIME_OFF_FROM = 150 - 25
         self.TIME_OFF_TO = 150 + 25
 
+        # Flipped timing settings (as before before the timing was changed)
+        # self.TIME_ON_FROM = 150 - 25
+        # self.TIME_ON_TO = 150 + 25
+        # self.TIME_OFF_FROM = 100
+        # self.TIME_OFF_TO = 100
+
         # # for the first tutorial session, we will use the following settings
-        self.N_FRAMES = 160
-        self.N_REPEATS = 2
-        self.TIME_ON_FROM = 100
-        self.TIME_ON_TO = 100
-        self.TIME_OFF_FROM = 400 - 25
-        self.TIME_OFF_TO = 400 + 25
-        self.RANDOM_SEED_STRING = "T"
+        # self.N_FRAMES = 160
+        # self.N_REPEATS = 2
+        # self.TIME_ON_FROM = 100
+        # self.TIME_ON_TO = 100
+        # self.TIME_OFF_FROM = 400 - 25
+        # self.TIME_OFF_TO = 400 + 25
+        # self.RANDOM_SEED_STRING = "T"
         
         # Derived timing
         self.TIME_ON_MEAN = (self.TIME_ON_FROM + self.TIME_ON_TO) / 2
@@ -219,8 +225,10 @@ class TemplateGenerator:
         print(f"Filtered {len(framedata['framedata'])} unique non-target frames")
 
         # Clip framedata to N_frames and remove N_target_frames
-        n_non_target_needed = self.config.N_FRAMES - self.config.N_TARGET_FRAMES
+        n_non_target_needed = min(self.config.N_FRAMES - self.config.N_TARGET_FRAMES, len(framedata['framedata']))
         framedata['framedata'] = random.sample(framedata['framedata'], n_non_target_needed)
+        if len(framedata['framedata']) < self.config.N_FRAMES - self.config.N_TARGET_FRAMES:
+            print(f"Warning: Not enough non-target frames to meet the required number of frames ({self.config.N_FRAMES - self.config.N_TARGET_FRAMES}). Using {len(framedata['framedata'])} non-target frames instead.")
         print(f"Trimmed framedata to {len(framedata['framedata'])} unique non-target frames (clipped to N_frames and removed N_target_frames; random subset)")
         
         self.N_FRAMES = len(framedata['framedata']) + self.config.N_TARGET_FRAMES
@@ -233,6 +241,9 @@ class TemplateGenerator:
         source_image_path = source_frame['image_path']
         dataset_name = source_frame['dataset']
         image_filename = source_frame['image_filename']
+
+        # XXX: This is a hack-around because the dataset naming is inconsistent between different codebases for the trailer faces HQ dataset. Need to fix and find all points in the codebase where this is a problem.
+        source_image_path = source_image_path.replace("TrailerFacesHQ/TrailerFacesHQ/", "tfhqv2/")
         
         # Copy image if requested
         if copy_image:
