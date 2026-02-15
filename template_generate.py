@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 960
         self.N_REPEATS = 2
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "5"
+        self.RANDOM_SEED_STRING = "2"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -210,6 +210,11 @@ class TemplateGenerator:
         with open(self.source_framedata_json, 'r') as f:
             framedata = json.load(f)
 
+        # Step 0. If the 'target' key is absent, add it to all frames with value False
+        for frame in framedata['framedata']:
+            if 'target' not in frame:
+                frame['target'] = False
+
         # Filtering step 1. Remove all target frames
         framedata['framedata'] = [frame for frame in framedata['framedata'] if not frame['target']]
         print(f"Filtered {len(framedata['framedata'])} non-target frames")
@@ -240,7 +245,8 @@ class TemplateGenerator:
         # Extract the original image path from source
         source_image_path = source_frame['image_path']
         dataset_name = source_frame['dataset']
-        image_filename = source_frame['image_filename']
+        # image_filename = source_frame['image_filename']
+        image_filename = source_frame['image_path'].split("/")[-1]
 
         # XXX: This is a hack-around because the dataset naming is inconsistent between different codebases for the trailer faces HQ dataset. Need to fix and find all points in the codebase where this is a problem.
         source_image_path = source_image_path.replace("TrailerFacesHQ/TrailerFacesHQ/", "tfhqv2/")
