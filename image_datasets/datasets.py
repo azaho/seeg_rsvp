@@ -135,7 +135,7 @@ class ILSVRC2012Dataset(Dataset):
         # Get target classes (synset descendants)
         target_classes = self._get_synset_descendants(self.target_synset)
 
-        missed_target_images = ['ILSVRC2012_val_00035676.JPEG'] # manually added
+        missed_target_images = ['ILSVRC2012_val_00035676.JPEG', 'ILSVRC2012_val_00019602.JPEG'] # manually added
         
         # Separate target and non-target images
         self.target_images = [

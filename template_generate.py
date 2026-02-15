@@ -58,7 +58,7 @@ class TemplateConfig:
         self.N_FRAMES = 960
         self.N_REPEATS = 2
         # Random seed for reproducibility and session variation
-        self.RANDOM_SEED_STRING = "2"
+        self.RANDOM_SEED_STRING = "3"
         
         # Timing settings (in ms)
         self.TIME_ON_FROM = 100
@@ -214,6 +214,8 @@ class TemplateGenerator:
         for frame in framedata['framedata']:
             if 'target' not in frame:
                 frame['target'] = False
+            elif type(frame['target']) == str:
+                frame['target'] = (frame['target'].lower() == 'true')
 
         # Filtering step 1. Remove all target frames
         framedata['framedata'] = [frame for frame in framedata['framedata'] if not frame['target']]
