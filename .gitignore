@@ -1,19 +1,5 @@
 .venv
 
-image_datasets/OASIS/OASIS/
-image_datasets/FER/
-image_datasets/ILSVRC2012_img_val/ILSVRC2012_img_val/
-image_datasets/tfhqv2/
-generated_images*/
-
 trial_data/
 
-templates*/
-
 **/__pycache__/
-
-imagebank/
-
-_dataset_zip/
-
-_old*/
