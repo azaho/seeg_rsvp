@@ -4,7 +4,7 @@ from pathlib import Path
 def generate_scripts():
     """
     Generate Mac-runnable shell scripts for each template directory.
-    Scripts are created in the parent directory of the workspace.
+    Scripts are created in the scripts/ subdirectory of the workspace.
     """
     # Get the current directory (workspace root)
     workspace_root = Path(__file__).parent
@@ -12,8 +12,9 @@ def generate_scripts():
     # Templates directory
     templates_dir = workspace_root / "templates"
     
-    # Parent directory where scripts will be created
-    parent_dir = workspace_root.parent
+    # Scripts directory where scripts will be created
+    scripts_dir = workspace_root / "scripts"
+    scripts_dir.mkdir(exist_ok=True)
     
     # Check if templates directory exists
     if not templates_dir.exists():
@@ -33,13 +34,13 @@ def generate_scripts():
     for template_dir in template_dirs:
         template_name = template_dir.name
         script_name = f"run_{template_name}.command"
-        script_path = parent_dir / script_name
+        script_path = scripts_dir / script_name
         
         # Script content
         script_content = f"""#!/bin/bash
 # Auto-generated script to run {template_name}
 
-cd "$(dirname "$0")/seeg_rsvp/"
+cd "$(dirname "$0")/../"
 source .venv/bin/activate
 python game.py {template_name}
 """
@@ -55,10 +56,10 @@ python game.py {template_name}
         except Exception as e:
             print(f"✓ Created: {script_path} (Note: Could not set executable permission: {e})")
     
-    print(f"\nAll scripts created in: {parent_dir}")
+    print(f"\nAll scripts created in: {scripts_dir}")
     print("\nTo run a script on Mac:")
-    print("  - Double-click the .command file, or")
-    print("  - Run from terminal: ./run_<template_name>.command")
+    print("  - Double-click the .command file in scripts/, or")
+    print("  - Run from terminal: ./scripts/run_<template_name>.command")
 
 if __name__ == "__main__":
     generate_scripts()
