@@ -15,6 +15,11 @@ assert os.path.exists(template_path), f"Template {template_name} not found."
 with open(template_path, 'r') as f:
     TEMPLATE = json.load(f)
 
+always_play_success_sound = False
+if "always_play_success_sound" in TEMPLATE:
+    always_play_success_sound = TEMPLATE["always_play_success_sound"]
+# XXX hack for now, we will always play the success sound for the biggan sessions
+
 EVENTS = []
 def create_event(event_type, timestamp=None, **kwargs):
     if timestamp is None:
@@ -369,7 +374,7 @@ def process_click():
     print(f"Mouse clicked at position: {pygame.mouse.get_pos()}")
     create_event("mouse_click")
 
-    success_sound = False
+    success_sound = always_play_success_sound
     current_time = time.time()
 
     for t_idx in target_stimulus_idx:
